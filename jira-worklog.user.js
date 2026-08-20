@@ -6,8 +6,8 @@
 // @author       yvasyl@softserveinc.com
 // @match        https://projects.qad.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=qad.com
-// @updateURL    https://raw.githubusercontent.com/TestUser013/jira-worklog-reporting/refs/heads/main/jira-worklog.js
-// @downloadURL  https://raw.githubusercontent.com/TestUser013/jira-worklog-reporting/refs/heads/main/jira-worklog.js
+// @updateURL    https://raw.githubusercontent.com/TestUser013/jira-worklog-reporting/refs/heads/main/jira-worklog.user.js
+// @downloadURL  https://raw.githubusercontent.com/TestUser013/jira-worklog-reporting/refs/heads/main/jira-worklog.user.js
 // @grant        none
 // ==/UserScript==
 
