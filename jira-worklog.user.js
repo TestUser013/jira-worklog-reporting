@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JIRA Worklog
 // @namespace    https://projects.qad.com/
-// @version      1.0
+// @version      1.0.1
 // @description  try to take over the world!
 // @author       yvasyl@softserveinc.com
 // @match        https://projects.qad.com/*
@@ -1141,6 +1141,7 @@
             });
             openButton.addEventListener('click', (event) => {
                 event.currentTarget.disabled = true;
+                State.dateOffset = 0;
                 WorklogPopover.main();
             });
             return openButton;
