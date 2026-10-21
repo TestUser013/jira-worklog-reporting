@@ -1,7 +1,7 @@
-    // ==UserScript==
+// ==UserScript==
 // @name         JIRA Cloud Styles
 // @namespace    https://qad.atlassian.net/
-// @version      2026-10-20
+// @version      2026-10-21
 // @description  try to take over the world!
 // @author       yvasyl@softserveinc.com
 // @match        https://qad.atlassian.net/*
@@ -14,6 +14,7 @@
 
     createStyles();
     addDevelopmentLogButton();
+    showParentTicketSummary();
 
     function createStyles() {
         document.head.insertAdjacentHTML('beforeend', `<style id="userjs">
@@ -39,6 +40,10 @@
                 padding-inline: var(--userjs-gap-small) !important;
             }
 
+            /* Board Assignee filters */
+            [data-testid="filters.ui.filters.assignee.stateless.assignee-filter"] > div {
+                gap: 1rem;
+            }
 
             /* Board tickets - vertical padding */
             [data-testid="platform-board-kit.ui.swimlane.swimlane-wrapper"] {
@@ -94,6 +99,20 @@
                 font: inherit;
                 font-size: 0.85rem;
                 line-height: 1.4;
+            }
+
+            [data-component-selector="breadcrumbs-wrapper"]:has(+ #userjs-parent-summary) {
+                flex: 0 0 auto;
+            }
+
+            #userjs-parent-summary {
+                flex: 1 1 0;
+                min-width: 0;
+                font-size: 0.85rem;
+                opacity: 0.8;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
         </style>`);
@@ -154,6 +173,50 @@
 
         new MutationObserver(inject).observe(document.body, { childList: true, subtree: true });
         inject();
+    }
+
+    function showParentTicketSummary() {
+        const parentSelector = '[data-testid="issue-field-parent.ui.view-link"]';
+        const breadcrumbsSelector = '[data-component-selector="breadcrumbs-wrapper"]';
+        const summaryId = 'userjs-parent-summary';
+        let lastSummary = null;
+
+        const show = () => {
+            const breadcrumbs = document.querySelector(breadcrumbsSelector);
+            const parentLink = document.querySelector(parentSelector);
+            let summaryEl = document.getElementById(summaryId);
+
+            const summary = parentLink
+                ? parentLink.textContent.trim().replace(/^[A-Z][A-Z0-9]+-\d+\s+/, '')
+                : '';
+
+            if (!breadcrumbs || !summary) {
+                if (summaryEl) {
+                    summaryEl.remove();
+                }
+                lastSummary = null;
+                return;
+            }
+
+            if (!summaryEl) {
+                summaryEl = document.createElement('div');
+                summaryEl.id = summaryId;
+            }
+            if (breadcrumbs.nextElementSibling !== summaryEl) {
+                breadcrumbs.after(summaryEl);
+            }
+            if (summaryEl.textContent !== summary) {
+                summaryEl.textContent = summary;
+            }
+
+            if (summary !== lastSummary) {
+                lastSummary = summary;
+                console.log('Parent ticket summary:', summary);
+            }
+        };
+
+        new MutationObserver(show).observe(document.body, { childList: true, subtree: true });
+        show();
     }
 
 })();
