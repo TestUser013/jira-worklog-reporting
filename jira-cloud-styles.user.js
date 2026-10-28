@@ -108,11 +108,27 @@
             #userjs-parent-summary {
                 flex: 1 1 0;
                 min-width: 0;
-                font-size: 0.85rem;
+                font-size: 12px;
                 opacity: 0.8;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+            }
+
+            /* Date Calendar widget */
+            [data-testid="issue.common.component.legacy-date-time.date-time-picker--datepicker--calendar--week"] > [role="gridcell"] > [aria-label*="Sunday"] {
+                color: #ff00007a;
+            }
+            [data-testid="issue.common.component.legacy-date-time.date-time-picker--datepicker--calendar--week"] > [role="gridcell"] > [aria-label*="Saturday"] {
+                color: #ff00007a;
+            }
+
+            /* Gap between fields in side panel */
+            [data-testid="issue-view-product-templates-item-list.ui.sortable-item-list.droppable-container"] {
+                row-gap: 0 !important;
+            }
+            [data-component-selector="jira-issue-field-heading-field-wrapper"] {
+                border-bottom: 1px dashed #7e818896;
             }
 
         </style>`);
