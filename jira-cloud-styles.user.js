@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JIRA Cloud Styles
 // @namespace    https://qad.atlassian.net/
-// @version      2026-10-28
+// @version      2026-11-02
 // @description  try to take over the world!
 // @author       yvasyl@softserveinc.com
 // @match        https://qad.atlassian.net/*
@@ -80,6 +80,31 @@
                 max-height: calc(100svh - var(--userjs-gap) * 2) !important;
             }
 
+            /* Ticket card footer: issue key on the first row, remaining fields on the second */
+            [data-component-selector="platform-card.ui.card.card-content.content-section"] > div {
+                grid-template-columns: minmax(0, 1fr) auto !important;
+                grid-template-rows: auto auto !important;
+                grid-template-areas: none !important;
+                gap: 0;
+
+                > div:first-child {
+                    grid-area: 1 / 1 / 2 / span 2 !important;
+
+                    [data-testid="platform-card.common.ui.key.key"] a > div {
+                        font-size: 1rem;
+                        padding-block: 0.4rem;
+                        padding-right: 1rem;
+                    }
+                }
+
+                > div:nth-child(2) {
+                    grid-area: 2 / 1 !important;
+                }
+
+                > div:nth-child(3) {
+                    grid-area: 2 / 2 !important;
+                }
+            }
 
             /* Ticket transition popup window - full size */
             div[data-testid="issue-transition.ui.issue-transition-modal--positioner"] {
