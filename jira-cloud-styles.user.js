@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JIRA Cloud Styles
 // @namespace    https://qad.atlassian.net/
-// @version      2026-11-02
+// @version      2026-11-05
 // @description  try to take over the world!
 // @author       yvasyl@softserveinc.com
 // @match        https://qad.atlassian.net/*
@@ -16,6 +16,7 @@
     addDevelopmentLogButton();
     showParentTicketSummary();
     addCopyTicketButton();
+    fixBacklogCardVirtualization();
 
     function createStyles() {
         document.head.insertAdjacentHTML('beforeend', `<style id="userjs">
@@ -440,6 +441,105 @@
 
         new MutationObserver(inject).observe(document.body, { childList: true, subtree: true });
         inject();
+    }
+
+    // Jira reserves sprint list height but mounts cards only after scrollTop changes.
+    function fixBacklogCardVirtualization() {
+        const scrollerSelector = '[data-testid="software-backlog.backlog-content.scrollable"]';
+        const listSelector = '[data-testid^="software-backlog.card-list.id-"] ul';
+        const attached = new WeakSet();
+        const state = new WeakMap();
+
+        const emptyVisibleLists = (scroller) => {
+            const view = scroller.getBoundingClientRect();
+            if (view.height < 40) {
+                return [];
+            }
+
+            return [...scroller.querySelectorAll(listSelector)].filter((ul) => {
+                if (ul.children.length > 0 || !(parseFloat(ul.style.height) > 0)) {
+                    return false;
+                }
+
+                const rect = ul.getBoundingClientRect();
+                return rect.bottom > view.top + 8 && rect.top < view.bottom - 8;
+            });
+        };
+
+        const kick = (scroller) => {
+            const info = state.get(scroller);
+            if (!info || info.kicking) {
+                return;
+            }
+
+            const empty = emptyVisibleLists(scroller);
+            const signature = empty
+                .map((ul) => ul.style.height + '@' + Math.round(ul.getBoundingClientRect().top))
+                .join('|');
+
+            if (!empty.length) {
+                info.attempts = 0;
+                info.signature = '';
+                return;
+            }
+
+            if (signature !== info.signature) {
+                info.signature = signature;
+                info.attempts = 0;
+            }
+
+            const max = scroller.scrollHeight - scroller.clientHeight;
+            if (max < 1 || info.attempts >= 6) {
+                return;
+            }
+
+            info.attempts += 1;
+            info.kicking = true;
+            const y = scroller.scrollTop;
+            const next = y < max ? y + 1 : y - 1;
+            scroller.scrollTop = next;
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (Math.abs(scroller.scrollTop - next) < 2) {
+                        scroller.scrollTop = y;
+                    }
+                    setTimeout(() => {
+                        info.kicking = false;
+                        kick(scroller);
+                    }, 350);
+                });
+            });
+        };
+
+        const schedule = (scroller) => {
+            const info = state.get(scroller);
+            clearTimeout(info.timer);
+            info.timer = setTimeout(() => kick(scroller), 60);
+        };
+
+        const attach = (scroller) => {
+            if (attached.has(scroller)) {
+                return;
+            }
+
+            attached.add(scroller);
+            state.set(scroller, { attempts: 0, kicking: false, timer: 0, signature: '' });
+            new MutationObserver(() => schedule(scroller)).observe(scroller, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['style']
+            });
+            schedule(scroller);
+        };
+
+        const scan = () => {
+            document.querySelectorAll(scrollerSelector).forEach(attach);
+        };
+
+        new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
+        scan();
     }
 
 })();
