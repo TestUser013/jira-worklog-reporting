@@ -136,6 +136,26 @@
                 margin: 0 !important;
             }
 
+            /* Story group header: icon, key, status, summary, subtasks, epic, assignee */
+            [data-testid="platform-board-kit.ui.swimlane.swimlane-wrapper"] h3 > [data-testid="platform-card.common.ui.key.key"] {
+                order: 1;
+            }
+            [data-testid="platform-board-kit.ui.swimlane.swimlane-wrapper"] h3 > div:has([data-testid="platform-board-kit.ui.swimlane.lozenge"]) {
+                order: 2;
+            }
+            [data-testid="platform-board-kit.ui.swimlane.swimlane-wrapper"] h3 > div:has([data-testid="platform-board-kit.ui.swimlane.summary-section"]) {
+                order: 3;
+            }
+            [data-testid="platform-board-kit.ui.swimlane.swimlane-wrapper"] h3 > div:not(:has(*)) {
+                order: 4;
+            }
+            [data-testid="platform-board-kit.ui.swimlane.swimlane-wrapper"] h3 > [data-testid="platform-board-kit.ui.swimlane.epic.tag"] {
+                order: 5;
+            }
+            [data-testid="platform-board-kit.ui.swimlane.swimlane-wrapper"] h3 > div:has([role="img"]) {
+                order: 6;
+            }
+
 
             /* Ticket popup window - full size */
             div[data-testid="issue.views.issue-details.issue-modal.modal-dialog--positioner"] {
