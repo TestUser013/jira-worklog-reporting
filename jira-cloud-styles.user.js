@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JIRA Cloud Styles
 // @namespace    https://qad.atlassian.net/
-// @version      2026-11-06
+// @version      2026-11-07
 // @description  try to take over the world!
 // @author       yvasyl@softserveinc.com
 // @match        https://qad.atlassian.net/*
