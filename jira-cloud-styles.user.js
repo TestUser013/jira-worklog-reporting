@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JIRA Cloud Styles
 // @namespace    https://qad.atlassian.net/
-// @version      2026-11-10
+// @version      2026-11-10.1
 // @description  try to take over the world!
 // @author       yvasyl@softserveinc.com
 // @match        https://qad.atlassian.net/*
@@ -159,6 +159,29 @@
                 order: 6;
             }
 
+            /* Backlog - vertical spaces and gaps when search is active */
+            [data-ssr-placeholder-replace="backlog-content-container"]:has(input[data-testid="software-filters.ui.stateless.search-field"]:not(:placeholder-shown)) {
+                [data-testid="software-backlog.backlog-content.scrollable"] {
+                    li:has([data-testid="software-backlog.card-list.fast-virtual-list.empty-card-list"]) {
+                        display: none !important;
+                    }
+                }
+                [data-testid*="software-backlog.card-list.container"] {
+                    margin-bottom: 0 !important;
+                }
+                [data-testid="software-backlog.card-list.divider.container"] {
+                    margin-bottom: 0 !important;
+                }
+                [data-testid="software-backlog.card-list.inline-work-item-create.trigger-wrapper"] {
+                    display: none !important;
+                }
+                [data-testid="software-backlog.card-list.divider.container"] {
+                    display: none !important;
+                }
+                [data-testid*="software-backlog.card-list.container"] div:has([data-testid="software-backlog.card-list.work-load-by-assignee.entry-point-button-trigger"]){
+                    display: none !important;
+                }
+            }
 
             /* Ticket popup window - full size */
             div[data-testid="issue.views.issue-details.issue-modal.modal-dialog--positioner"] {
