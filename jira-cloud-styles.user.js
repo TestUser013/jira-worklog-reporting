@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JIRA Cloud Styles
 // @namespace    https://qad.atlassian.net/
-// @version      2026-11-07
+// @version      2026-11-10
 // @description  try to take over the world!
 // @author       yvasyl@softserveinc.com
 // @match        https://qad.atlassian.net/*
@@ -14,12 +14,15 @@
     'use strict';
 
     blockAtlassianRegistration();
+    applyHideFieldStyles();
 
     const start = () => {
+        applyHideFieldStyles();
         createStyles();
         addDevelopmentLogButton();
         showParentTicketSummary();
         addCopyTicketButton();
+        addHideFieldsButton();
         fixBacklogCardVirtualization();
         highlightValidationFields();
         addCommitReviewsColumn();
@@ -440,6 +443,89 @@
             [data-testid="development-details.main.commits-tab.repositories.commits-table"] td:hover div:has(> div > span > button),
             [data-testid="development-details.main.commits-tab.repositories.commits-table"] tr:focus-within td div:has(> div > span > button) {
                 opacity: 1 !important;
+            }
+
+            /* Hide fields toggle */
+            #userjs-hide-fields-button {
+                position: relative;
+                flex: 0 0 auto;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+                margin: 0;
+                padding: 0;
+                border: 0;
+                border-radius: var(--ds-radius-medium, 6px);
+                background: transparent;
+                color: inherit;
+                cursor: pointer;
+            }
+            #userjs-hide-fields-button::after {
+                content: "";
+                position: absolute;
+                inset: var(--ds-space-0, 0);
+                border-style: solid;
+                border-width: var(--ds-border-width, 1px);
+                border-color: var(--ds-border, #0b120e24);
+                border-radius: inherit;
+                pointer-events: none;
+            }
+            #userjs-hide-fields-button:hover,
+            #userjs-hide-fields-button[aria-expanded="true"] {
+                background: color-mix(in srgb, currentColor 14%, transparent);
+            }
+            #userjs-hide-fields-button:focus:not(:focus-visible) {
+                outline: none;
+            }
+            #userjs-hide-fields-button svg {
+                width: 16px;
+                height: 16px;
+                display: block;
+            }
+            #userjs-hide-fields-panel {
+                position: fixed;
+                z-index: 10000;
+                box-sizing: border-box;
+                min-width: 280px;
+                max-width: 360px;
+                max-height: min(70vh, 480px);
+                overflow: auto;
+                padding: 0.35rem 0;
+                border: 1px solid var(--ds-border, #3b4754);
+                border-radius: 6px;
+                background: var(--ds-surface-overlay, #282e33);
+                color: var(--ds-text, inherit);
+                box-shadow: var(--ds-shadow-overlay, 0 8px 16px rgba(0, 0, 0, 0.36));
+                font: inherit;
+                font-size: 14px;
+            }
+            #userjs-hide-fields-panel[hidden] {
+                display: none;
+            }
+            .userjs-hide-fields-group {
+                padding: 0.45rem 0.75rem 0.15rem;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                opacity: 0.7;
+            }
+            .userjs-hide-fields-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 0.5rem;
+                margin: 0;
+                padding: 0.3rem 0.75rem;
+                cursor: pointer;
+            }
+            .userjs-hide-fields-item:hover {
+                background: color-mix(in srgb, currentColor 10%, transparent);
+            }
+            .userjs-hide-fields-item input {
+                flex: 0 0 auto;
+                margin: 0.15rem 0 0;
             }
 
         </style>`);
@@ -1362,6 +1448,295 @@
 
         new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true });
         schedule();
+    }
+
+    // Hide rules from jira-cloud-menu.user.js. Each checkbox adds its rule.
+    function getHideFieldGroups() {
+        const issueField = (id, label, selector) => ({
+            id: id,
+            label: label,
+            css: '#issue-view-layout-templates-tabs-0-tab ._30huDKYbGa._24h04i2Njc._034jHtYbGa._2O5Vij7dHp._3YEZNO7dHp._1bHrqEAEMG._1mT5xdRAKS:has('
+                + selector
+                + '){display:none}'
+        });
+
+        return [{
+            label: 'Primary fields',
+            items: [
+                issueField('status-comments', 'Status Comments', '[data-testid="issue.views.field.rich-text.customfield_10777"]'),
+                issueField('notes', 'Notes', '[aria-label="Notes, edit"]'),
+                issueField('reason-for-escalation', 'Reason for escalation across company', '[aria-label="Reason for escalation across company, edit"]'),
+                issueField('qsm-qpsm-key', 'QSM / QPSM Key', '[data-testid="issue.views.field.rich-text.customfield_11312"]'),
+                issueField('closed-remedial-actions', 'Closed Remedial Actions', '[data-testid="issue.views.field.rich-text.customfield_10431"]'),
+                issueField('recurrence-count', 'Recurrence Count', '[data-testid="issue.views.field.rich-text.customfield_10430"]'),
+                issueField('event-date-validation', 'Event Date Validation', '[data-testid="issue.views.field.rich-text.customfield_10429"]'),
+                issueField('customer-resolution', 'Customer Resolution', '[data-testid="issue.views.field.rich-text.customfield_11388"]')
+            ]
+        }, {
+            label: 'Side panel fields',
+            items: [{
+                id: 'connect-dev-tools',
+                label: 'Connect development tools',
+                css: '[data-vc="development-context-panel-body"] [data-testid="summary-development-field.ui.summary.connect-dev-tools-summary-item.summary-item"]{display:none}'
+            }, {
+                id: 'open-in-coding-tool',
+                label: 'Open in coding tool',
+                css: '[data-vc="development-context-panel-body"] [data-testid="development-summary-development-field.ui.summary.deeplink-summary-item.summary-item"]{display:none}'
+            }]
+        }, {
+            label: 'Primary Panels',
+            items: [{
+                id: 'zephyr',
+                label: 'Zephyr',
+                css: '.css-rjtezs:has([data-testid="issue-view-ecosystem.forge.issue-panel"]){display:none}'
+            }, {
+                id: 'agents',
+                label: 'Agents',
+                css: '.css-rjtezs:has([data-testid="ai-agent-sessions.title-container"]){display:none}'
+            }]
+        }, {
+            label: 'Side panels',
+            items: [{
+                id: 'details',
+                label: 'Details',
+                css: '[data-testid="issue-view-layout-templates-views.ui.context.visible-hidden.ui.context-group.container.details-group"]{display:none}'
+            }, {
+                id: 'development',
+                label: 'Development',
+                css: '[data-testid="issue-view-layout-templates-views.ui.context.visible-hidden.ui.context-group.container.development-context-panel"]{display:none}'
+            }, {
+                id: 'more-fields',
+                label: 'More Fields',
+                css: '[data-testid="issue-view-layout-templates-views.ui.context.visible-hidden.ui.context-group.container.secondary-context-items"]{display:none}'
+            }, {
+                id: 'automation',
+                label: 'Automation',
+                css: '[data-testid="issue-view-layout-templates-views.ui.context.visible-hidden.ui.ecosystem-context-group.container.automation-issue-audit-log-panel"]{display:none}'
+            }, {
+                id: 'out-of-office',
+                label: 'Out Of Office',
+                css: '[data-testid^="issue-view-layout-templates-views.ui.context.visible-hidden.ui.ecosystem-context-group.container."][data-testid$="static/out-of-office-issue-context"]{display:none}'
+            }, {
+                id: 'structure',
+                label: 'Structure',
+                css: '[data-testid^="issue-view-layout-templates-views.ui.context.visible-hidden.ui.ecosystem-context-group.container."][data-testid$="static/okr-issue-context"]{display:none}'
+            }]
+        }];
+    }
+
+    function readHiddenFields() {
+        try {
+            const value = JSON.parse(localStorage.getItem('userjs-hide-fields') || '{}');
+            if (!value || typeof value !== 'object' || Array.isArray(value)) {
+                return {};
+            }
+            return value;
+        } catch (error) {
+            return {};
+        }
+    }
+
+    function writeHiddenFields(state) {
+        try {
+            localStorage.setItem('userjs-hide-fields', JSON.stringify(state));
+        } catch (error) {}
+    }
+
+    function applyHideFieldStyles() {
+        if (!document.documentElement) {
+            return;
+        }
+
+        const checked = readHiddenFields();
+        let style = document.getElementById('userjs-hide-fields');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'userjs-hide-fields';
+        }
+
+        const parent = document.head || document.documentElement;
+        if (style.parentNode !== parent) {
+            parent.appendChild(style);
+        }
+
+        style.textContent = getHideFieldGroups().reduce((items, group) => items.concat(group.items), [])
+            .filter((item) => checked[item.id])
+            .map((item) => item.css)
+            .join('\n');
+    }
+
+    function addHideFieldsButton() {
+        const triggerSelector = '[data-testid="issue-view-foundation.quick-add.quick-add-items-compact.apps-button-dropdown--trigger"]';
+        const buttonId = 'userjs-hide-fields-button';
+        const panelId = 'userjs-hide-fields-panel';
+
+        const positionPanel = (button, panel) => {
+            panel.hidden = false;
+            panel.style.visibility = 'hidden';
+            const rect = button.getBoundingClientRect();
+            const margin = 8;
+            const width = panel.offsetWidth;
+            const height = panel.offsetHeight;
+            let left = rect.left;
+            if (left + width > window.innerWidth - margin) {
+                left = Math.max(margin, window.innerWidth - width - margin);
+            }
+            let top = rect.bottom + 4;
+            if (top + height > window.innerHeight - margin) {
+                top = Math.max(margin, rect.top - height - 4);
+            }
+            panel.style.left = left + 'px';
+            panel.style.top = top + 'px';
+            panel.style.visibility = '';
+        };
+
+        const setOpen = (button, open) => {
+            const panel = document.getElementById(panelId);
+            if (!panel) {
+                return;
+            }
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (open) {
+                positionPanel(button, panel);
+            } else {
+                panel.hidden = true;
+            }
+        };
+
+        const ensurePanel = () => {
+            let panel = document.getElementById(panelId);
+            if (panel) {
+                return panel;
+            }
+
+            panel = document.createElement('div');
+            panel.id = panelId;
+            panel.hidden = true;
+            panel.setAttribute('aria-label', 'Hide fields');
+
+            const checked = readHiddenFields();
+            getHideFieldGroups().forEach((group) => {
+                const title = document.createElement('div');
+                title.className = 'userjs-hide-fields-group';
+                title.textContent = group.label;
+                panel.appendChild(title);
+
+                group.items.forEach((item) => {
+                    const label = document.createElement('label');
+                    label.className = 'userjs-hide-fields-item';
+
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.checked = !!checked[item.id];
+                    input.addEventListener('change', () => {
+                        const state = readHiddenFields();
+                        if (input.checked) {
+                            state[item.id] = true;
+                        } else {
+                            delete state[item.id];
+                        }
+                        writeHiddenFields(state);
+                        applyHideFieldStyles();
+                    });
+
+                    const text = document.createElement('span');
+                    text.textContent = item.label;
+                    label.appendChild(input);
+                    label.appendChild(text);
+                    panel.appendChild(label);
+                });
+            });
+
+            document.body.appendChild(panel);
+            return panel;
+        };
+
+        const createButton = () => {
+            const button = document.createElement('button');
+            button.id = buttonId;
+            button.type = 'button';
+            button.title = 'Hide fields';
+            button.setAttribute('aria-label', 'Hide fields');
+            button.setAttribute('aria-haspopup', 'true');
+            button.setAttribute('aria-expanded', 'false');
+            button.setAttribute('aria-controls', panelId);
+            button.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M1.6 8S3.7 3.8 8 3.8 14.4 8 14.4 8 12.3 12.2 8 12.2 1.6 8 1.6 8zm6.4 2.1a2.1 2.1 0 1 0 0-4.2 2.1 2.1 0 0 0 0 4.2z"/><path fill="currentColor" d="M2.1 1.4l.8-.8 11.6 11.6-.8.8z"/></svg>';
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                ensurePanel();
+                setOpen(button, button.getAttribute('aria-expanded') !== 'true');
+            });
+            return button;
+        };
+
+        const inject = () => {
+            const triggers = [...document.querySelectorAll(triggerSelector)].filter((trigger) => trigger.getClientRects().length);
+            const trigger = triggers[triggers.length - 1];
+            if (!trigger) {
+                return;
+            }
+
+            const anchor = trigger.parentElement && trigger.parentElement.getAttribute('role') === 'presentation'
+                ? trigger.parentElement
+                : trigger;
+
+            let button = document.getElementById(buttonId);
+            if (!button) {
+                button = createButton();
+            }
+
+            if (anchor.nextElementSibling !== button) {
+                anchor.after(button);
+            }
+        };
+
+        document.addEventListener('click', (event) => {
+            const panel = document.getElementById(panelId);
+            const button = document.getElementById(buttonId);
+            if (!panel || panel.hidden) {
+                return;
+            }
+            if (panel.contains(event.target) || (button && button.contains(event.target))) {
+                return;
+            }
+            if (button) {
+                setOpen(button, false);
+            } else {
+                panel.hidden = true;
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') {
+                return;
+            }
+            const button = document.getElementById(buttonId);
+            const panel = document.getElementById(panelId);
+            if (!panel || panel.hidden) {
+                return;
+            }
+            if (button) {
+                setOpen(button, false);
+                button.focus();
+            } else {
+                panel.hidden = true;
+            }
+        });
+
+        const reposition = () => {
+            const button = document.getElementById(buttonId);
+            const panel = document.getElementById(panelId);
+            if (!button || !panel || panel.hidden) {
+                return;
+            }
+            positionPanel(button, panel);
+        };
+
+        window.addEventListener('resize', reposition);
+        window.addEventListener('scroll', reposition, true);
+        new MutationObserver(inject).observe(document.body, { childList: true, subtree: true });
+        inject();
     }
 
 })();
