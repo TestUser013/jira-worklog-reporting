@@ -5,6 +5,7 @@
 // @description  try to take over the world!
 // @author       yvasyl@softserveinc.com
 // @match        https://qad.atlassian.net/jira/*
+// @match        https://qad.atlassian.net/browse/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=atlassian.net
 // @grant        none
 // ==/UserScript==
