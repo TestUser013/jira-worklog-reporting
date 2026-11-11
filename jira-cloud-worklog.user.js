@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JIRA Cloud Worklog
 // @namespace    https://qad.atlassian.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  try to take over the world!
 // @author       yvasyl@softserveinc.com
 // @match        https://qad.atlassian.net/jira/*
